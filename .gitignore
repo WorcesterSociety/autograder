@@ -210,3 +210,7 @@ local.properties
 .recommenders/
 
 target/
+
+# Vagrant
+.vagrant
+*.log
