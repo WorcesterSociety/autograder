@@ -1,5 +1,4 @@
-def test_foo():
-    assert True
+import assignment
 
-def test_bar():
-    assert False
+def test_foo():
+    assert assignment.plus_two(2) == 4
