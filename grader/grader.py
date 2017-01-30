@@ -1,67 +1,56 @@
 import docker
 import os
-import re
-
-client = docker.from_env()
 
 
-def grade_assignment(test_path, assignment_path):
-    abs_assignment_path = os.path.abspath(assignment_path)
-    abs_test_path = os.path.abspath(test_path)
-    volumes = {
-        abs_assignment_path: {'bind': '/opt/assignment', 'mode': 'rw'},
-        abs_test_path: {'bind': '/opt/assignment/test', 'mode': 'ro'},
-    }
-    container = client.containers.create("aatxe/pytest", command="pytest",
-                                         working_dir="/opt/", volumes=volumes)
-    container.start()
+class Grader():
+    client = docker.from_env()
 
-    logs = container.logs(stdout=True, stderr=True, stream=True)
-    output = [line.decode("utf-8") for line in logs]
+    def __init__(self, grading_behavior):
+        self.grading_behavior = grading_behavior
 
-    grade = grade_output(output)
+    def grade_assignment(self, test_path, assignment_path, **kwargs):
+        # Set up bind volumes for Docker.
+        abs_assignment_path = os.path.abspath(assignment_path)
+        abs_test_path = os.path.abspath(test_path)
+        bound_assignment_path = self.grading_behavior.assignment_path()
+        bound_test_path = self.grading_behavior.test_path()
+        volumes = {
+            abs_assignment_path: {'bind': bound_assignment_path, 'mode': 'rw'},
+            abs_test_path: {'bind': bound_test_path, 'mode': 'ro'},
+        }
 
-    container.stop()
+        # Create a specific Docker container using the grading behavior.
+        client = Grader.client
+        image = self.grading_behavior.docker_image()
+        working_dir = self.grading_behavior.docker_working_dir()
+        cmd = self.grading_behavior.grading_command()
+        container = client.containers.create(image, working_dir=working_dir,
+                                             command=cmd, volumes=volumes)
 
-    write_output(output, grade, assignment_path, "feedback.txt")
-    print("{} received a grade of {}%.".format(assignment_path, grade))
+        container.start()
 
+        logs = container.logs(stdout=True, stderr=True, stream=True)
+        output = [line.decode("utf-8") for line in logs]
 
-def write_output(output, grade, path, name):
-    with open(path + "/" + name, "w") as feedback:
-        feedback.write("Final Grade: {}%\n".format(grade))
-        for line in output:
-            feedback.write("{}\n".format(line))
+        # Parse output for a result dictionary (expecting failed and passed).
+        results = self.grading_behavior.parse_output(output)
+        grade = Grader.calculate_grade(results)
 
+        container.stop()
 
-def grade_output(output):
-    last_line = output[-1]
-    results = parse_pytest_line(last_line)
-    total = results["passed"] + results["failed"]
-    return results["passed"] * 100 / total
+        # Generates a report from the output and writes it to disk.
+        report = self.grading_behavior.generate_report(grade, output)
+        feedback_path = assignment_path + "/feedback.txt"
+        Grader.write_report(feedback_path, report)
 
+        # Output grades in verbose mode.
+        if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
+            print("{} received a grade of {}%.".format(assignment_path, grade))
 
-def parse_pytest_line(line):
-    failing = "([0-9]+) failed"
-    passing = "([0-9]+) passed"
+    def calculate_grade(results):
+        total = results["passed"] + results["failed"]
+        return int(results["passed"] * 100 / total)
 
-    failed = re.search(failing, line)
-    passed = re.search(passing, line)
-
-    # Group 1 corresponds to the numeric portion of both matches.
-    return {
-        "failed": int(group_or_else(match=failed, group=1, default=0)),
-        "passed": int(group_or_else(match=passed, group=1, default=0)),
-    }
-
-
-def group_or_else(**kwargs):
-    if kwargs["match"] is not None:
-        index = kwargs["group"]
-        return kwargs["match"].group(index)
-    else:
-        return kwargs["default"]
-
-
-if __name__ == "__main__":
-    grade_assignment("examples/assignment_tests", "examples/assignment")
+    def write_report(feedback_path, report):
+        with open(feedback_path, "w") as feedback:
+            feedback.write(report)
