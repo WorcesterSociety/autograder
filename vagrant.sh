@@ -8,6 +8,5 @@ sudo add-apt-repository \
        main"
 sudo apt-get update
 sudo apt-get install -y docker-engine python3-pip
-pip3 install --upgrade pip
-pip3 install docker
+pip3 install docker pytest
 sudo docker pull python
