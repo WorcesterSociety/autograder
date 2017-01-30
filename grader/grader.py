@@ -12,7 +12,8 @@ def grade_assignment(test_path, assignment_path):
         abs_assignment_path: {'bind': '/opt/assignment', 'mode': 'rw'},
         abs_test_path: {'bind': '/opt/assignment/test', 'mode': 'ro'},
     }
-    container = client.containers.create("aatxe/pytest", command="pytest", working_dir="/opt/", volumes=volumes)
+    container = client.containers.create("aatxe/pytest", command="pytest",
+                                         working_dir="/opt/", volumes=volumes)
     container.start()
 
     logs = container.logs(stdout=True, stderr=True, stream=True)
