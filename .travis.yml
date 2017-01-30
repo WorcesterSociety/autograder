@@ -2,7 +2,7 @@ language: python
 python:
 - '3.6'
 sudo: false
-script: pytest
+script: pytest tests/
 notifications:
   email: false
   slack:
