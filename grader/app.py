@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 from grader import *
 from moodle_unzipper import *
