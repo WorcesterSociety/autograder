@@ -1,3 +1,5 @@
+from functools import partial
+import itertools
 import re
 
 
@@ -34,7 +36,36 @@ class PytestGrading():
 
     def generate_report(grade, output):
         grade_line = "Final Grade: {}%".format(grade)
-        return "{}\n{}".format(grade_line, "\n".join(output))
+
+        # Get only the lines following the last instance of test session starts
+        pytest_out = reversed_takewhile(
+            lambda line: "test session starts" not in line, output
+        )
+
+        # Get only the following the FAILURES heading in the output.
+        failures = reversed_takewhile(
+            lambda line: "FAILURES" not in line, pytest_out
+        )
+
+        # Determine the names of failed tests from failures section of output.
+        regex = "[_]+ (test_[a-zA-Z0-9_]+) [_]+"
+        failed = filter(not_none, map(partial(re.match, regex), failures))
+
+        # Generates failure report for feedback.
+        failed_report = map(
+            lambda x: "Failed test: {}".format(x.group(1)), failed
+        )
+
+        return "{}\n{}".format(grade_line, "\n".join(failed_report))
+
+
+# itertools.takewhile, but from the end of the list.
+def reversed_takewhile(pred, xs):
+    return list(itertools.takewhile(pred, xs[::-1]))[::-1]
+
+
+def not_none(x):
+    return x is not None
 
 
 def group_or_else(**kwargs):
