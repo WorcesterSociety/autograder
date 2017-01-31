@@ -1,4 +1,4 @@
-import functools
+from functools import partial
 import os
 import shutil
 from zipfile import ZipFile, BadZipFile
@@ -56,13 +56,15 @@ def subdir_if_necessary(path):
 
 
 def files(path):
-    return filter(os.path.isfile, map(functools.partial(absolutize, path),
-                                      os.listdir(path)))
+    return filter(
+        os.path.isfile, map(partial(absolutize, path), os.listdir(path))
+    )
 
 
 def dirs(path):
-    return filter(os.path.isdir, map(functools.partial(absolutize, path),
-                                     os.listdir(path)))
+    return filter(
+        os.path.isdir, map(partial(absolutize, path), os.listdir(path))
+    )
 
 
 def absolutize(base, path):

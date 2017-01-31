@@ -24,8 +24,9 @@ class Grader():
         image = self.grading_behavior.docker_image()
         working_dir = self.grading_behavior.docker_working_dir()
         cmd = self.grading_behavior.grading_command()
-        container = client.containers.create(image, working_dir=working_dir,
-                                             command=cmd, volumes=volumes)
+        container = client.containers.create(
+            image, working_dir=working_dir, command=cmd, volumes=volumes
+        )
 
         container.start()
 
