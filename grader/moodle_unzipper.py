@@ -31,7 +31,7 @@ class MoodleUnzipper():
 
         # Return a list of directories for each student's assignments.
         results = flatten(map(dirs, dirs(output))) + list(dirs(output))
-        print(results)
+
         # Filters out special __MACOSX folders from macOS-made ZIP files.
         # Maps subdir_if_necessary to deal with variety in ZIP format.
         return map(subdir_if_necessary, filter(is_not_macos, results))
