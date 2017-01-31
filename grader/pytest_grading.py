@@ -42,21 +42,30 @@ class PytestGrading():
             lambda line: "test session starts" not in line, output
         )
 
+        # Parse the first line (following test session starts) for information.
+        info = "platform ([a-zA-Z0-9]+) -- (Python [0-9.]+), (pytest-[0-9.]+)"
+        platform = re.match(info, pytest_out[0])
+        info_line = "Assignment was graded on {} with {} and {}.".format(
+            platform.group(1), platform.group(2), platform.group(3)
+        )
+
         # Get only the following the FAILURES heading in the output.
         failures = reversed_takewhile(
             lambda line: "FAILURES" not in line, pytest_out
         )
 
         # Determine the names of failed tests from failures section of output.
-        regex = "[_]+ (test_[a-zA-Z0-9_]+) [_]+"
-        failed = filter(not_none, map(partial(re.match, regex), failures))
+        test_name = "[_]+ (test_[a-zA-Z0-9_]+) [_]+"
+        failed = filter(not_none, map(partial(re.match, test_name), failures))
 
         # Generates failure report for feedback.
         failed_report = map(
             lambda x: "Failed test: {}".format(x.group(1)), failed
         )
 
-        return "{}\n{}".format(grade_line, "\n".join(failed_report))
+        return "{}\n{}\n{}".format(
+            grade_line, info_line, "\n".join(failed_report)
+        )
 
 
 # itertools.takewhile, but from the end of the list.
