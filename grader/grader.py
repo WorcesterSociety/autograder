@@ -32,20 +32,27 @@ class Grader():
         logs = container.logs(stdout=True, stderr=True, stream=True)
         output = [line.decode("utf-8") for line in logs]
 
-        # Parse output for a result dictionary (expecting failed and passed).
-        results = self.grading_behavior.parse_output(output)
-        grade = Grader.calculate_grade(results)
+        try:
+            # Parse output for a result dictionary.
+            # Expecting failed and passed keys in dictionary.
+            results = self.grading_behavior.parse_output(output)
+            grade = Grader.calculate_grade(results)
 
-        container.stop()
+            container.stop()
 
-        # Generates a report from the output and writes it to disk.
-        report = self.grading_behavior.generate_report(grade, output)
-        feedback_path = assignment_path + "/feedback.txt"
-        Grader.write_report(feedback_path, report)
+            # Generates a report from the output and writes it to disk.
+            report = self.grading_behavior.generate_report(grade, output)
+            feedback_path = assignment_path + "/feedback.txt"
+            Grader.write_report(feedback_path, report)
 
-        # Output grades in verbose mode.
-        if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
-            print("{} received a grade of {}%.".format(assignment_path, grade))
+            # Output grades in verbose mode.
+            if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
+                print("{} received a grade of {}%.".format(
+                    assignment_path, grade
+                ))
+        except ZeroDivisionError:
+            if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
+                print("Failed to grade {}".format(assignment_path))
 
     def calculate_grade(results):
         total = results["passed"] + results["failed"]
