@@ -7,14 +7,16 @@ class PytestGrading():
     def assignment_path():
         return "/opt/assignment"
 
-    def test_path():
-        return PytestGrading.assignment_path() + "/test"
+    @classmethod
+    def test_path(cls):
+        return cls.assignment_path() + "/test"
 
     def docker_image():
         return "aatxe/pytest"
 
-    def docker_working_dir():
-        return PytestGrading.assignment_path()
+    @classmethod
+    def docker_working_dir(cls):
+        return cls.assignment_path()
 
     def parse_output(output):
         failing = "([0-9]+) failed"
