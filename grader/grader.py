@@ -69,7 +69,7 @@ class Grader():
     def calculate_grade(results):
         """Calculates a grade from a dictionary with passed and failed keys."""
         total = results["passed"] + results["failed"]
-        return int(results["passed"] * 100 / total)
+        return int(round(results["passed"] * 100 / total))
 
     def write_report(feedback_path, report):
         """Writes out a grading report to the specified path."""
