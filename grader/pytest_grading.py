@@ -4,24 +4,35 @@ import re
 
 
 class PytestGrading():
+    """A grading behavior for grading Python assignments using Pytest."""
+
     def grading_command():
+        """The command to run in the Docker container."""
         return "pytest"
 
     def assignment_path():
+        """The path to mount the assignment within the Docker container."""
         return "/opt/assignment"
 
     @classmethod
     def test_path(cls):
+        """The path to mount the tests within the Docker container."""
         return cls.assignment_path() + "/test"
 
     def docker_image():
+        """The desired Docker image to grade the assignment in."""
         return "aatxe/pytest"
 
     @classmethod
     def docker_working_dir(cls):
+        """The Docker working directory to run the grading command in."""
         return cls.assignment_path()
 
     def parse_output(output):
+        """
+        Parses the output from grading to get out a dictionary with failed and
+        passed test counts.
+        """
         failing = "([0-9]+) failed"
         passing = "([0-9]+) passed"
 
@@ -35,9 +46,10 @@ class PytestGrading():
         }
 
     def generate_report(grade, output):
+        """Generates a feedback report to write out for the assignment."""
         grade_line = "Final Grade: {}%".format(grade)
 
-        # Get only the lines following the last instance of test session starts
+        # Get only the lines after the last instance of test session starts.
         pytest_out = reversed_takewhile(
             lambda line: "test session starts" not in line, output
         )
@@ -70,14 +82,25 @@ class PytestGrading():
 
 # itertools.takewhile, but from the end of the list.
 def reversed_takewhile(pred, xs):
+    """Takes elements from the back of the list while the predicate holds."""
     return list(itertools.takewhile(pred, xs[::-1]))[::-1]
 
 
 def not_none(x):
+    """Returns true if the argument is not None"""
     return x is not None
 
 
 def group_or_else(**kwargs):
+    """
+    Gets the specific regular expression group if there's a match, otherwise
+    returns the specified default value.
+
+    Keyword arguments:
+    match -- the regular expression match
+    group -- the index of the desired group to get
+    default -- the default value to return when the match is not found
+    """
     if kwargs["match"] is not None:
         index = kwargs["group"]
         return kwargs["match"].group(index)

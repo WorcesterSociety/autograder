@@ -3,12 +3,23 @@ import os
 
 
 class Grader():
+    """A testing infrastructure for automatically grading homework assignments.
+       Uses Docker internally, and thus requires a running Docker server."""
     client = docker.from_env()
 
     def __init__(self, grading_behavior):
         self.grading_behavior = grading_behavior
 
     def grade_assignment(self, test_path, assignment_path, **kwargs):
+        """Grades an assignment given the specified arguments.
+
+        Arguments:
+        test_path -- the path to the tests to use
+        assignment_path -- the path to the assignment to grade
+
+        Keyword arguments:
+        verbose -- whether or not to have verbose output from grading
+        """
         # Set up bind volumes for Docker.
         abs_assignment_path = os.path.abspath(assignment_path)
         abs_test_path = os.path.abspath(test_path)
@@ -56,9 +67,11 @@ class Grader():
                 print("Failed to grade {}".format(assignment_path))
 
     def calculate_grade(results):
+        """Calculates a grade from a dictionary with passed and failed keys."""
         total = results["passed"] + results["failed"]
         return int(results["passed"] * 100 / total)
 
     def write_report(feedback_path, report):
+        """Writes out a grading report to the specified path."""
         with open(feedback_path, "w") as feedback:
             feedback.write(report)
