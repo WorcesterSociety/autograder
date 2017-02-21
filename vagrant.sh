@@ -7,6 +7,6 @@ sudo add-apt-repository \
        ubuntu-$(lsb_release -cs) \
        main"
 sudo apt-get update
-sudo apt-get install -y docker-engine python3-pip
-pip3 install docker pytest
-sudo docker pull python
+sudo apt-get install -y docker-engine python3-pip unrar
+pip3 install docker rarfile pytest
+sudo docker pull aatxe/pytest:latest

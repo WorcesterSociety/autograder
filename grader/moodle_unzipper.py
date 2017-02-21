@@ -1,7 +1,8 @@
 from functools import partial
 import os
+from rarfile import RarFile, is_rarfile
 import shutil
-from zipfile import ZipFile, BadZipFile
+from zipfile import ZipFile, is_zipfile
 
 
 class MoodleUnzipper():
@@ -21,51 +22,53 @@ class MoodleUnzipper():
             overall_zip.extractall(path=output)
 
         failed = []
-        # Walk the output and extract all the inner per-student zips.
-        for inner_zip_path in files(output):
+        # Walk the output and extract all the inner per-student archives.
+        for inner_path in files(output):
             try:
-                with ZipFile(inner_zip_path) as inner_zip:
-                    # Gets the name of the zip by stripping the .zip.
-                    zip_name = inner_zip_path[:inner_zip_path.rfind(".zip")]
-                    output_path = os.path.join(output, zip_name)
-                    inner_zip.extractall(path=output_path)
-            except BadZipFile:
-                # File was not a ZIP archive, it might be RAR or something.
-                failed.append(inner_zip_path)
+                if is_zipfile(inner_path):
+                    with ZipFile(inner_path) as inner_zip:
+                        # Gets the name of the zip by stripping the extension.
+                        zip_name, _ = os.path.splitext(inner_path)
+                        output_path = os.path.join(output, zip_name)
+                        inner_zip.extractall(path=output_path)
+                elif is_rarfile(inner_path):
+                    with RarFile(inner_path) as inner_rar:
+                        # Gets the name of the rar by stripping the extension.
+                        rar_name, _ = os.path.splitext(inner_path)
+                        output_path = os.path.join(output, rar_name)
+                        inner_rar.extractall(path=output_path)
+            except Exception as e:
+                # Failed to extract the file as a ZIP or RAR.
+                failed.append(inner_path)
 
         # Print out failed archives.
-        print("Failed to extract: {}".format(failed))
+        if len(failed) > 0:
+            print("Failed to extract: {}".format(failed))
 
         # Return a list of directories for each student's assignments.
-        results = flatten(map(dirs, dirs(output))) + list(dirs(output))
+        results = list(dirs(output))
 
-        # Filters out special __MACOSX folders from macOS-made ZIP files.
         # Maps subdir_if_necessary to deal with variety in ZIP format.
-        return map(subdir_if_necessary, filter(is_not_macos, results))
+        return sorted(map(subdir_if_necessary, results))
 
 
-def is_not_macos(path):
-    """Returns true if the path does not end with __MACOSX"""
-    return path.endswith("__MACOSX") is False
+def is_valid_path(path):
+    """Returns true if the path is not hidden and is not a known bad path."""
+    return "__MACOSX" not in path and ".idea" not in path \
+        and "__pycache__" not in path and "/." not in path
 
 
-# This function exists to deal with the high variability in ZIP formatting.
-# Some submissions will be in folders, others will not.
-# This helps us by recurring into the first subdirectories if they exist.
 def subdir_if_necessary(path):
     """
-    Recursively follows subdirectories that are not hidden and do not contain
-    the word 'test'. This is necessary to deal with variability in user
-    submissions, as some users include nested directories and others do not.
+    Recursively follows subdirectories that are valid by is_valid_path. This is
+    necessary to deal with variability in user submissions, as some users
+    include nested directories and others do not.
     """
-    if len(list(dirs(path))) is 0:
+    subdirs = list(filter(is_valid_path, dirs(path)))
+    if len(subdirs) is 0:
         return path
     else:
-        value = next(dirs(path))
-        if "test" in value or "/." in value:
-            return path
-        else:
-            return subdir_if_necessary(value)
+        return subdir_if_necessary(subdirs[0])
 
 
 def files(path):
