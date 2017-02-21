@@ -1,3 +1,6 @@
+moodle/
+*.zip
+project*
 feedback.txt
 .vagrant
 
