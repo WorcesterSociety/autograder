@@ -8,7 +8,7 @@ class PytestGrading():
 
     def grading_command():
         """The command to run in the Docker container."""
-        return "pytest"
+        return "pytest test"
 
     def assignment_path():
         """The path to mount the assignment within the Docker container."""
@@ -67,7 +67,7 @@ class PytestGrading():
         )
 
         # Determine the names of failed tests from failures section of output.
-        test_name = "[_]+ (test_[a-zA-Z0-9_]+) [_]+"
+        test_name = "[_]+ (test_[a-zA-Z0-9_\[\]\-]+) [_]+"
         failed = filter(not_none, map(partial(re.match, test_name), failures))
 
         # Generates failure report for feedback.
