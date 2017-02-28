@@ -26,4 +26,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     grader = Grader(args.grading_behavior)
     for project_path in MoodleUnzipper.unzip(args.zip_path):
-        grader.grade_assignment(args.test_path, project_path, verbose=True)
+        grader.grade_assignment(args.test_path, project_path, verbose=True, timeout=30)

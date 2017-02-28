@@ -48,8 +48,9 @@ class Grader():
             # Set up timeout handler.
             signal.signal(signal.SIGALRM, Grader.handle_timeout)
 
-            # Set alarm for ten seconds.
-            signal.alarm(10)
+            # Set alarm for timeout in seconds.
+            if "timeout" in kwargs.keys():
+                signal.alarm(kwargs["timeout"])
 
             logs = container.logs(stdout=True, stderr=True, stream=True)
             output = [line.decode("utf-8") for line in logs]
