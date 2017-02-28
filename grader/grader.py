@@ -1,5 +1,8 @@
 import docker
 import os
+from sh import systemctl
+import signal
+import time
 
 
 class Grader():
@@ -41,16 +44,29 @@ class Grader():
 
         container.start()
 
-        logs = container.logs(stdout=True, stderr=True, stream=True)
-        output = [line.decode("utf-8") for line in logs]
-
         try:
+            # Set up timeout handler.
+            signal.signal(signal.SIGALRM, Grader.handle_timeout)
+
+            # Set alarm for ten seconds.
+            signal.alarm(10)
+
+            logs = container.logs(stdout=True, stderr=True, stream=True)
+            output = [line.decode("utf-8") for line in logs]
+
+            # Reset alarm if execution completed in time.
+            signal.alarm(0)
+
             # Parse output for a result dictionary.
             # Expecting failed and passed keys in dictionary.
             results = self.grading_behavior.parse_output(output)
             grade = Grader.calculate_grade(results)
 
-            container.stop()
+            try:
+                container.stop()
+            except:
+                systemctl.restart("docker")
+                time.sleep(3)
 
             # Generates a report from the output and writes it to disk.
             report = self.grading_behavior.generate_report(grade, output)
@@ -66,6 +82,9 @@ class Grader():
             if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
                 print("Failed to grade {}".format(assignment_path))
             Grader.write_report(assignment_path + "/failed.txt", "\n".join(output))
+        except ContainerTimeout:
+            if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
+                print("Timed out while grading {}".format(assignment_path))
 
     def calculate_grade(results):
         """Calculates a grade from a dictionary with passed and failed keys."""
@@ -76,3 +95,10 @@ class Grader():
         """Writes out a grading report to the specified path."""
         with open(feedback_path, "w") as feedback:
             feedback.write(report)
+
+    def handle_timeout(signum, frame):
+        raise ContainerTimeout()
+
+class ContainerTimeout(Exception):
+    def __init__(self):
+        super(ContainerTimeout, self).__init__("A timeout occurred during grading.")

@@ -8,5 +8,5 @@ sudo add-apt-repository \
        main"
 sudo apt-get update
 sudo apt-get install -y docker-engine python3-pip unrar
-pip3 install docker rarfile pytest
+pip3 install docker rarfile pytest sh
 sudo docker pull aatxe/pytest:latest
