@@ -1,9 +1,14 @@
 import docker
 import os
-from sh import systemctl
 import signal
 import time
 
+try:
+    from sh import systemctl
+    restart_docker = True
+except ImportError:
+    # Does not use systemctl, and thus we cannot restart Docker.
+    restart_docker = False
 
 class Grader():
     """A testing infrastructure for automatically grading homework assignments.
@@ -66,8 +71,9 @@ class Grader():
             try:
                 container.stop()
             except:
-                systemctl.restart("docker")
-                time.sleep(3)
+                if restart_docker:
+                    systemctl.restart("docker")
+                    time.sleep(3)
 
             # Generates a report from the output and writes it to disk.
             report = self.grading_behavior.generate_report(grade, output)
