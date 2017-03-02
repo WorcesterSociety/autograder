@@ -1,7 +1,7 @@
 language: python
 python:
 - '3.6'
-sudo: false
+sudo: required
 before_install:
 - sudo apt-get -qq update
 - sudo apt-get install -y unrar
