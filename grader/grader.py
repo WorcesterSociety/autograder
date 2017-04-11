@@ -90,6 +90,8 @@ class Grader():
                 print("{} received a grade of {}%.".format(
                     assignment_path, grade
                 ))
+
+            return grade
         except ZeroDivisionError:
             if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
                 print("Failed to grade {}".format(assignment_path))
