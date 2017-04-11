@@ -80,6 +80,11 @@ class Grader():
             feedback_path = assignment_path + "/feedback.txt"
             Grader.write_report(feedback_path, report)
 
+            # Output full output in loud mode.
+            if "loud" in kwargs.keys() and kwargs["loud"] is True:
+                for line in output:
+                    print(line)
+
             # Output grades in verbose mode.
             if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
                 print("{} received a grade of {}%.".format(
