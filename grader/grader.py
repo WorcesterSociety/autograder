@@ -91,14 +91,16 @@ class Grader():
                     assignment_path, grade
                 ))
 
-            return grade
+            return grade, report
         except ZeroDivisionError:
             if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
                 print("Failed to grade {}".format(assignment_path))
             Grader.write_report(assignment_path + "/failed.txt", "\n".join(output))
+            return 0, output
         except ContainerTimeout:
             if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
                 print("Timed out while grading {}".format(assignment_path))
+            return 0, "Timed out."
 
     def calculate_grade(results):
         """Calculates a grade from a dictionary with passed and failed keys."""
