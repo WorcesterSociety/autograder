@@ -98,6 +98,7 @@ class Grader():
             Grader.write_report(assignment_path + "/failed.txt", "\n".join(output))
             return 0, output
         except ContainerTimeout:
+            container.kill()
             if "verbose" in kwargs.keys() and kwargs["verbose"] is True:
                 print("Timed out while grading {}".format(assignment_path))
             return 0, "Timed out."
