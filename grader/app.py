@@ -51,7 +51,7 @@ if __name__ == "__main__":
             args.test_path, args.zip_path, verbose=True, loud=True, timeout=30
         )
     else:
-	outfile = None
+        outfile = None
         count, total = 0, 0
         if args.outfile is not None:
             db = ConfigParser()
