@@ -1,6 +1,6 @@
 # AutoGrader [![Build Status](https://travis-ci.org/WorcesterSociety/autograder.svg?branch=master)](https://travis-ci.org/WorcesterSociety/autograder) #
 
-An automated grading tool for COMPSCI 220 (and hopefully beyond)!
+An automated grading tool.
 
 ## Getting Started ##
 
